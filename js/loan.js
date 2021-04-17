@@ -1,86 +1,122 @@
-//Wire up our button
-document.getElementById("btnCalc").addEventListener("click", buildSchedule);
-
-document.getElementById("scheduleTable").style.visibility = "hidden";  
-
-//Calculate the loan payment
+//Calculate the payment for the loan
 function calcPayment(amount, rate, term) {
     return (amount * rate) / (1 - Math.pow(1 + rate, -term));
 }
 
-//Calcuate the interest for the current balance of the loan
+//calculate the interst for the current balance of the loan
 function calcInterest(balance, rate) {
     return balance * rate;
 }
 
-//this function will build our loan schedule
 function buildSchedule() {
-    
-    //Make the table visible I don't want the table show unless there are values
-    document.getElementById("scheduleTable").style.visibility = "visible";    
+    let loanAmount = Number(document.getElementById("lamount").value);
+    let rate = parseFloat(document.getElementById("lrate").value);
 
-
-    //Get the values from out inputs
-    let amount = document.getElementById("loanAmount").value;
-    let rate = document.getElementById("loanRate").value;
-    let term = document.getElementById("loanTerm").value;
-
-    //Convert the input rate to a monthly rate
+    //convert rate to a monthly interest rate
     rate = rate / 1200;
 
-    //Calulate the payments
+    //Assume monthly input
+    let term = parseInt(document.getElementById("lterm").value);
+    let payment = calcPayment(loanAmount, rate, term);
+    let payments = getPayments(loanAmount, rate, term, payment);
 
-    //setup some variables that hold values in the schedule
-    let payment = calcPayment(amount, rate, term);
+    displayData(payments, loanAmount, payment);
+}
+
+//Build the amoritization schedule
+function getPayments(amount, rate, term, payment) {
+    //setup an array to hold payments;
+    let payments = [];
+
+    //setup some variables to hold the value in the schedule
+
     let balance = amount;
     let totalInterest = 0;
     let monthlyPrincipal = 0;
     let monthlyInterest = 0;
     let monthlyTotalInterest = 0;
 
-    //Write the results to our table
-    let scheduleBody = document.getElementById("scheduleBody");
-    let scheduleRow = "";
-    //reset the table
-    scheduleBody.innerHTML = "";
-
+    //create a loop for each month of the loan term
     for (month = 1; month <= term; month++) {
-
+        //Calculate the payment and interest
         monthlyInterest = calcInterest(balance, rate);
         totalInterest += monthlyInterest;
         monthlyPrincipal = payment - monthlyInterest;
         balance = balance - monthlyPrincipal;
 
-        //Write these values to the table
-        scheduleRow = `<tr><td>${month}</td>
-        <td>${payment.toFixed(2)}</td>
-        <td>${monthlyPrincipal.toFixed(2)}</td>
-        <td>${monthlyInterest.toFixed(2)}</td>
-        <td>${totalInterest.toFixed(2)}</td>
-        <td>${balance.toFixed(2)}</td>
-        </tr>`;
+        //add the details to an object
+        let curPayment = {
+            month: month,
+            payment: payment,
+            principal: monthlyPrincipal,
+            interest: monthlyInterest,
+            totalInterest: totalInterest,
+            balance: balance
+        }
 
-        scheduleBody.innerHTML += scheduleRow;
+        payments.push(curPayment);
+
     }
 
-    document.getElementById("payment").innerHTML = Number(payment).toLocaleString("en-US", {
+    return payments;
+
+}
+
+//display the data to the user
+function displayData(payments, loanAmount, payment) {
+    //get the table we are going to add to.
+    let tableBody = document.getElementById("scheduleBody");
+    let template = document.getElementById("scheduleTemplate");
+
+    //clear the table for previous calculations
+    tableBody.innerHTML = "";
+
+    for (let i = 0; i < payments.length; i++) {
+        //get a clone row template
+        payRow = template.content.cloneNode(true);
+        //grab only the columns in the template
+        paycols = payRow.querySelectorAll("td");
+
+        //build the row
+        //we know that there are six columns in our template
+        paycols[0].textContent = payments[i].month;
+        paycols[1].textContent = payments[i].payment.toFixed(2);
+        paycols[2].textContent = payments[i].principal.toFixed(2);
+        paycols[3].textContent = payments[i].interest.toFixed(2);
+        paycols[4].textContent = payments[i].totalInterest.toFixed(2);
+        paycols[5].textContent = payments[i].balance.toFixed(2);
+
+        //append to the table
+        tableBody.appendChild(payRow);
+    }
+
+    //total interest is in the last row of the payments array.
+    let totalInterest = payments[payments.length - 1].totalInterest;
+    //calculate total cost
+    let totalCost = Number(loanAmount) + totalInterest;
+
+    //Build out the summary area
+    let labelPrincipal = document.getElementById("totalPrincipal");
+    labelPrincipal.innerHTML = Number(loanAmount).toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
     });
 
-    document.getElementById("totalPrincipal").innerHTML = Number(amount).toLocaleString("en-US", {
+    let labelInterest = document.getElementById("totalInterest");
+    labelInterest.innerHTML = Number(totalInterest).toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
     });
 
-    document.getElementById("totalInterest").innerHTML = Number(totalInterest).toLocaleString("en-US", {
+    let paymentdiv = document.getElementById("payment");
+    paymentdiv.innerHTML = Number(payment).toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
     });
 
-    let totalCost = Number(amount) + totalInterest;
+    let totalCostDiv = document.getElementById("totalCost");
 
-    document.getElementById("totalCost").innerHTML = Number(totalCost).toLocaleString("en-US", {
+    totalCostDiv.innerHTML = Number(totalCost).toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
     });
