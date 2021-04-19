@@ -9,29 +9,32 @@ function calcInterest(balance, rate) {
 }
 
 function buildSchedule() {
-    let loanAmount = Number(document.getElementById("lamount").value);
-    let rate = parseFloat(document.getElementById("lrate").value);
+    const loanAmount = Number(document.getElementById("lamount").value);
+    const rate = parseFloat(document.getElementById("lrate").value);
 
     //convert rate to a monthly interest rate
     rate = rate / 1200;
 
     //Assume monthly input
-    let term = parseInt(document.getElementById("lterm").value);
-    let payment = calcPayment(loanAmount, rate, term);
-    let payments = getPayments(loanAmount, rate, term, payment);
+    const term = parseInt(document.getElementById("lterm").value);
+    const payment = calcPayment(loanAmount, rate, term);
+    let paymentDS = getPayments(loanAmount, rate, term, payment);
 
     //pass the array to the display function
-    displayData(payments);
+    displayData(paymentDS);
 }
 
 //Build the amoritization schedule
 function getPayments(amount, rate, term, payment) {
     //setup an array to hold payments;
-    //this will hold an array of objects
-    let payments = [];
+    //payments will hold an array of monhtly payment objects
+    //summary will hold summary data object
+    let paymentDS = {
+        payments: [],
+        summary: {}
+    };
 
     //setup some variables to hold the value in the schedule
-
     let balance = amount;
     let totalInterest = 0;
     let monthlyPrincipal = 0;
@@ -54,10 +57,9 @@ function getPayments(amount, rate, term, payment) {
             interest: monthlyInterest,
             totalInterest: totalInterest,
             balance: balance
-        }
-
-        payments.push(curPayment);
-
+        };
+        //push the curPayment to the payments array
+        paymentDS.payments.push(curPayment);
     }
 
     let summary = {
@@ -65,16 +67,16 @@ function getPayments(amount, rate, term, payment) {
         totalPrincipal: amount,
         totalInterest: totalInterest,
         totalCost: (amount + totalInterest)
-    }
+    };
 
-    payments.push(summary);
+    paymentDS.summary = summary;
 
-    return payments;
+    return paymentDS;
 
 }
 
 //display the data to the user
-function displayData(payments) {
+function displayData(paymentDS) {
     //get the table we are going to add to.
     let tableBody = document.getElementById("scheduleBody");
     let template = document.getElementById("scheduleTemplate");
@@ -82,7 +84,7 @@ function displayData(payments) {
     //clear the table for previous calculations
     tableBody.innerHTML = "";
 
-    for (let i = 0; i < payments.length - 1; i++) {
+    for (let i = 0; i < paymentDS.payments.length; i++) {
         //get a clone row template
         payRow = template.content.cloneNode(true);
         //grab only the columns in the template
@@ -90,28 +92,22 @@ function displayData(payments) {
 
         //build the row
         //we know that there are six columns in our template
-        paycols[0].textContent = payments[i].month;
-        paycols[1].textContent = payments[i].payment.toFixed(2);
-        paycols[2].textContent = payments[i].principal.toFixed(2);
-        paycols[3].textContent = payments[i].interest.toFixed(2);
-        paycols[4].textContent = payments[i].totalInterest.toFixed(2);
-        paycols[5].textContent = payments[i].balance.toFixed(2);
+        paycols[0].textContent = paymentDS.payments[i].month;
+        paycols[1].textContent = paymentDS.payments[i].payment.toFixed(2);
+        paycols[2].textContent = paymentDS.payments[i].principal.toFixed(2);
+        paycols[3].textContent = paymentDS.payments[i].interest.toFixed(2);
+        paycols[4].textContent = paymentDS.payments[i].totalInterest.toFixed(2);
+        paycols[5].textContent = Math.abs(paymentDS.payments[i].balance).toFixed(2);
 
         //append to the table
         tableBody.appendChild(payRow);
     }
 
     //total interest is in the last row of the payments array.
-    let totalInterest = payments[payments.length - 1].totalInterest;
-    //calculate total cost   
-    //    payment: payment,
-    //    totalPrincipal: amount,
-    //    totalInterest: totalInterest,
-    //    totalCost: (amount + totalInterest)
-
-    let payment = payments[payments.length - 1].payment;
-    let loanAmount = payments[payments.length - 1].loanAmount;
-    let totalCost = payments[payments.length - 1].totalCost;
+    let totalInterest = paymentDS.summary.totalInterest;
+    let payment = paymentDS.summary.payment;
+    let loanAmount = paymentDS.summary.totalPrincipal;
+    let totalCost = paymentDS.summary.totalCost;
 
     //Build out the summary area
     let labelPrincipal = document.getElementById("totalPrincipal");
@@ -133,7 +129,6 @@ function displayData(payments) {
     });
 
     let totalCostDiv = document.getElementById("totalCost");
-
     totalCostDiv.innerHTML = Number(totalCost).toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
