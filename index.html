@@ -23,15 +23,16 @@
                     <div class="form-row row-cols-1">
                         <div class="form-group col">
                             <label for="lamount">Loan Amount:</label>
-                            <input type="number" class="form-control" id="lamount" value=15000 name="lamount">
+                            <input type="number" class="form-control" id="lamount" min="1000" step="500" value=15000
+                                name="lamount">
                         </div>
                         <div class="form-group col">
                             <label for="lterm">Loan Term in Months:</label>
-                            <input type="number" class="form-control" id="lterm" value=60 name="lterm">
+                            <input type="number" class="form-control" id="lterm" min="1" value=60 name="lterm">
                         </div>
                         <div class="fomr-group col">
                             <label for="lrate">Rate:</label>
-                            <input type="number" class="form-control" id="lrate" value=3 name="lrate">
+                            <input type="number" class="form-control" id="lrate" min="1" value=3 step=".1" name="lrate">
                         </div>
                     </div>
                     <button type="button" onclick="buildSchedule()" class="btn btn-cfOrange mt-2">Calculate</button>

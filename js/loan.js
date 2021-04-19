@@ -20,12 +20,14 @@ function buildSchedule() {
     let payment = calcPayment(loanAmount, rate, term);
     let payments = getPayments(loanAmount, rate, term, payment);
 
-    displayData(payments, loanAmount, payment);
+    //pass the array to the display function
+    displayData(payments);
 }
 
 //Build the amoritization schedule
 function getPayments(amount, rate, term, payment) {
     //setup an array to hold payments;
+    //this will hold an array of objects
     let payments = [];
 
     //setup some variables to hold the value in the schedule
@@ -58,12 +60,21 @@ function getPayments(amount, rate, term, payment) {
 
     }
 
+    let summary = {
+        payment: payment,
+        totalPrincipal: amount,
+        totalInterest: totalInterest,
+        totalCost: (amount + totalInterest)
+    }
+
+    payments.push(summary);
+
     return payments;
 
 }
 
 //display the data to the user
-function displayData(payments, loanAmount, payment) {
+function displayData(payments) {
     //get the table we are going to add to.
     let tableBody = document.getElementById("scheduleBody");
     let template = document.getElementById("scheduleTemplate");
@@ -71,7 +82,7 @@ function displayData(payments, loanAmount, payment) {
     //clear the table for previous calculations
     tableBody.innerHTML = "";
 
-    for (let i = 0; i < payments.length; i++) {
+    for (let i = 0; i < payments.length - 1; i++) {
         //get a clone row template
         payRow = template.content.cloneNode(true);
         //grab only the columns in the template
@@ -92,8 +103,15 @@ function displayData(payments, loanAmount, payment) {
 
     //total interest is in the last row of the payments array.
     let totalInterest = payments[payments.length - 1].totalInterest;
-    //calculate total cost
-    let totalCost = Number(loanAmount) + totalInterest;
+    //calculate total cost   
+    //    payment: payment,
+    //    totalPrincipal: amount,
+    //    totalInterest: totalInterest,
+    //    totalCost: (amount + totalInterest)
+
+    let payment = payments[payments.length - 1].payment;
+    let loanAmount = payments[payments.length - 1].loanAmount;
+    let totalCost = payments[payments.length - 1].totalCost;
 
     //Build out the summary area
     let labelPrincipal = document.getElementById("totalPrincipal");
