@@ -10,7 +10,7 @@ function calcInterest(balance, rate) {
 
 function buildSchedule() {
     const loanAmount = Number(document.getElementById("lamount").value);
-    const rate = parseFloat(document.getElementById("lrate").value);
+    let rate = parseFloat(document.getElementById("lrate").value);
 
     //convert rate to a monthly interest rate
     rate = rate / 1200;
